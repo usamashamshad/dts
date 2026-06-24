@@ -1,0 +1,21 @@
+<?php
+/**
+ * Cloud config example — copy values into config.php before deploy.
+ * Rename is NOT required; edit config.php directly.
+ */
+return [
+    'site_title'    => 'Document Tracking System',
+    'site_subtitle' => 'Reports · Drawings · Teams · Cloud',
+    'site_tagline'  => 'Centralise project reports, drawings, maps and team data.',
+
+    'data_file' => __DIR__ . '/data/projects.json',
+
+    'projects' => [
+        [
+            'id'   => 'data',
+            'name' => 'Data',
+            // Relative to app folder — works on InfinityFree, Render, Oracle VM
+            'path' => 'storage/Data',
+        ],
+    ],
+];

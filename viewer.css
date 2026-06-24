@@ -1,0 +1,450 @@
+/* In-iframe document viewer */
+html, body.viewer-page {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+.viewer-page {
+  min-height: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: #0c0d14;
+  color: #c8cce0;
+  font-family: Inter, system-ui, -apple-system, Segoe UI, sans-serif;
+  overflow: hidden;
+}
+
+.viewer-page.viewer-embed {
+  height: 100%;
+  min-height: 100%;
+}
+
+/* Embedded preview — keep horizontal scrollbar above container edge */
+.viewer-page.viewer-embed .viewer-zoom-viewport {
+  padding-bottom: 20px;
+  box-sizing: border-box;
+}
+
+.viewer-header {
+  flex-shrink: 0;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.viewer-header-main { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+.viewer-file-icon { font-size: 1.5rem; }
+.viewer-file-name { margin: 0; font-size: 1rem; font-weight: 700; color: #f4f5fb; }
+
+.viewer-standalone-toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.viewer-zoom-group {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px; border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(0,0,0,0.25);
+}
+.viewer-zoom-label { min-width: 44px; text-align: center; font-size: 11px; font-weight: 700; color: #a8adc4; }
+.viewer-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 7px 12px; border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.04); color: #e8eaf3;
+  font-size: 12px; font-weight: 700; cursor: pointer; text-decoration: none;
+}
+.viewer-btn-icon { min-width: 28px; padding: 7px 8px; }
+.viewer-btn-primary { background: #7c3aed; border-color: #8b5cf6; color: #fff; }
+
+.viewer-stage-wrap {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.viewer-loading {
+  position: absolute; inset: 0; z-index: 5;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: rgba(12,13,20,0.85); font-size: 13px; color: #8b90a8;
+}
+.viewer-loading.is-hidden { display: none !important; }
+
+.viewer-spinner {
+  width: 36px; height: 36px;
+  border: 3px solid rgba(139,92,246,0.2);
+  border-top-color: #8b5cf6;
+  border-radius: 50%;
+  animation: viewer-spin 0.7s linear infinite;
+}
+@keyframes viewer-spin { to { transform: rotate(360deg); } }
+
+.viewer-stage {
+  flex: 1 1 auto;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Scroll + zoom — content uses natural width; viewport scrolls both axes */
+.viewer-zoom-shell {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.viewer-zoom-viewport {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+  height: 100%;
+  /* scroll = always show scrollbar tracks (not overlay-only) */
+  overflow: scroll !important;
+  overflow-x: scroll !important;
+  overflow-y: scroll !important;
+  scrollbar-gutter: stable both-edges;
+  padding: 8px;
+  background: #0c0d14;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: auto;
+  scrollbar-color: #8b5cf6 #3a3b4a;
+}
+
+.viewer-zoom-viewport::-webkit-scrollbar {
+  width: 16px;
+  height: 16px;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.viewer-zoom-viewport::-webkit-scrollbar-track {
+  background: #3a3b4a;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+
+.viewer-zoom-viewport::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #c4b5fd 0%, #8b5cf6 50%, #6d28d9 100%);
+  border-radius: 8px;
+  border: 3px solid #3a3b4a;
+  min-height: 48px;
+  min-width: 48px;
+}
+
+.viewer-zoom-viewport::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #ddd6fe 0%, #a78bfa 50%, #7c3aed 100%);
+}
+
+.viewer-zoom-viewport::-webkit-scrollbar-thumb:active {
+  background: #6d28d9;
+}
+
+.viewer-zoom-viewport::-webkit-scrollbar-corner {
+  background: #3a3b4a;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.viewer-zoom-inner {
+  display: inline-block;
+  width: max-content;
+  max-width: none;
+  box-sizing: border-box;
+  vertical-align: top;
+  transform-origin: top left;
+}
+
+.viewer-zoom-inner.viewer-office-wrap {
+  padding: 20px;
+  background: #fff;
+  color: #111;
+  border-radius: 8px;
+  min-width: 100%;
+}
+
+.viewer-zoom-inner.viewer-pdf-wrap {
+  min-width: max-content;
+}
+
+.viewer-pdf-pages {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 4px;
+}
+
+.viewer-pdf-page {
+  background: #fff;
+  border-radius: 6px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+  line-height: 0;
+}
+
+.viewer-pdf-page-canvas {
+  display: block;
+  max-width: none;
+}
+
+.viewer-zoom-inner.viewer-image-wrap {
+  padding: 12px;
+  background: repeating-conic-gradient(#1a1b24 0% 25%, #14151c 0% 50%) 50% / 16px 16px;
+  border-radius: 8px;
+}
+
+.viewer-image {
+  display: block;
+  max-width: none;
+  border-radius: 4px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+}
+
+.viewer-text {
+  margin: 0;
+  padding: 16px;
+  font-size: 12px;
+  line-height: 1.55;
+  white-space: pre;
+  word-break: normal;
+  overflow: visible;
+  background: #11121a;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  color: #c8cce0;
+  min-width: 800px;
+}
+
+.viewer-docx-html {
+  display: block;
+  width: max-content;
+  max-width: none;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.viewer-docx-html table {
+  border-collapse: collapse;
+  width: max-content !important;
+  max-width: none !important;
+  margin: 12px 0;
+}
+.viewer-docx-html td, .viewer-docx-html th {
+  border: 1px solid #ddd;
+  padding: 6px 10px;
+  white-space: nowrap !important;
+}
+.viewer-docx-html img { max-width: none; height: auto; }
+
+.viewer-excel-shell {
+  width: max-content;
+  max-width: none;
+}
+.viewer-sheet-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.viewer-sheet-tab {
+  padding: 6px 12px; border-radius: 8px;
+  border: 1px solid rgba(0,0,0,0.15);
+  background: #f3f4f6; color: #111;
+  font-size: 11px; font-weight: 700; cursor: pointer;
+}
+.viewer-sheet-tab.is-active { background: #ede9fe; border-color: #8b5cf6; color: #5b21b6; }
+
+.viewer-sheet-table { overflow: visible; }
+.viewer-sheet-table table {
+  border-collapse: collapse;
+  font-size: 12px;
+  width: max-content !important;
+  max-width: none !important;
+}
+.viewer-sheet-table td, .viewer-sheet-table th {
+  border: 1px solid #ddd;
+  padding: 4px 8px;
+  white-space: nowrap;
+}
+
+.viewer-pptx-deck {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 16px;
+  min-width: 720px;
+  padding: 4px;
+}
+
+.viewer-pptx-slide {
+  position: relative;
+}
+
+.viewer-pptx-slide-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 1;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  font-size: 11px;
+  font-weight: 800;
+  color: #ddd6fe;
+  letter-spacing: 0.04em;
+}
+
+.viewer-pptx-shell { min-width: 800px; }
+.viewer-pptx-frame {
+  min-height: 220px;
+  padding: 24px;
+  background: linear-gradient(145deg, #1e1f2e, #14151f);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.28);
+}
+.viewer-pptx-title { margin: 0 0 16px; font-size: 1.25rem; font-weight: 800; color: #f4f5fb; }
+.viewer-pptx-bullets { margin: 0; padding-left: 1.4rem; line-height: 1.7; color: #c8cce0; }
+.viewer-pptx-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+}
+.viewer-pptx-images img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+}
+.viewer-pptx-nav { display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 12px; }
+
+.viewer-cad-wrap {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.viewer-cad-toolbar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(10, 11, 18, 0.92);
+}
+
+.viewer-cad-toolbar-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #8b90a8;
+}
+
+.viewer-cad-layout-select {
+  min-width: 180px;
+  max-width: min(100%, 320px);
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #151826;
+  color: #f4f5fb;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.viewer-cad-shell {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  background: #0a0b12;
+  cursor: grab;
+}
+
+.viewer-cad-disclaimer {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 8px 12px 10px;
+  font-size: 11px;
+  line-height: 1.45;
+  color: #8b90a8;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(10, 11, 18, 0.92);
+}
+
+.viewer-cad-empty-notice {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(10, 11, 18, 0.88);
+  z-index: 2;
+  pointer-events: auto;
+}
+
+.viewer-cad-empty-card {
+  max-width: 420px;
+  padding: 20px 22px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #151826;
+  text-align: center;
+}
+
+.viewer-cad-empty-card p {
+  margin: 0 0 10px;
+  font-size: 13px;
+  color: #8b90a8;
+  line-height: 1.5;
+}
+
+.viewer-cad-empty-card p strong {
+  color: #f4f5fb;
+  font-size: 14px;
+}
+
+.viewer-cad-empty-card .viewer-btn {
+  margin-top: 8px;
+}
+
+.viewer-cad-dl-btn {
+  display: inline-block;
+  margin-top: 14px;
+  text-decoration: none;
+}
+.viewer-cad-shell:active { cursor: grabbing; }
+
+.viewer-cad-canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+
+.viewer-notice, .viewer-empty {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; padding: 48px 24px; min-height: 280px;
+}
+.viewer-notice-icon, .viewer-empty-icon { font-size: 3rem; margin-bottom: 12px; }
+.viewer-notice-title { margin: 0 0 8px; font-size: 1.1rem; font-weight: 800; color: #f4f5fb; }
+.viewer-notice-hint { margin: 4px 0; font-size: 13px; color: #8b90a8; max-width: 420px; }
+
+.viewer-stage-blocked {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 240px;
+}
+
+.is-hidden { display: none !important; }

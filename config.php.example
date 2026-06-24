@@ -1,0 +1,28 @@
+<?php
+return [
+    'site_title'    => 'Document Tracking System',
+    'site_subtitle' => 'Navigational Data · Data Integration · Accountability · Accessibility · Processed Data',
+    'site_tagline'  => 'Centralise project reports, drawings, maps and other data',
+
+    'product_credit_kicker' => 'Developed by',
+    'product_credit_name'   => 'Knowledge & Innovation Cell',
+
+    'data_file' => __DIR__ . '/data/projects.json',
+
+    /**
+     * Google Drive API key — required to sync public Drive folders.
+     * Get one at https://console.cloud.google.com/ (enable Drive API).
+     * Leave empty if you only use local folders.
+     */
+    'gdrive_api_key' => '',
+
+    'gdrive_cache_ttl' => 600,
+
+    'projects' => [
+        [
+            'id'   => 'data',
+            'name' => 'Data',
+            'path' => 'storage/Data',
+        ],
+    ],
+];

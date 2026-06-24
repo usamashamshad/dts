@@ -1,0 +1,37 @@
+# Synced project files on disk (put your files here locally)
+storage/*
+!storage/Data/
+storage/Data/*
+!storage/Data/.gitkeep
+
+# Uploaded / project media (stored per install)
+assets/
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.webp
+!fixes.css
+
+# User / runtime data (not shipped with the app)
+data/projects.json
+data/gdrive-cache/
+data/uploads/*
+!data/uploads/.gitkeep
+data/hidden-projects.json
+
+# Local config with API keys — copy from config.php.example
+config.php
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+*.log
+node_modules/
+.env
+.idea/
+.vscode/
+
+# Local notes (optional)
+CLOUD_DEPLOYMENT.txt
+DTS_Presentation.txt
